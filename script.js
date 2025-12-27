@@ -236,7 +236,20 @@ window.addEventListener('DOMContentLoaded', () => {
     updateViewMode('search');
 });
 
-// ... updateViewMode ...
+function updateViewMode(mode) {
+    currentState.viewMode = mode;
+
+    // Update Nav UI
+    const items = document.querySelectorAll('.nav-item');
+    if (items) {
+        items.forEach(el => el.classList.remove('active'));
+        const activeId = 'nav' + mode.charAt(0).toUpperCase() + mode.slice(1);
+        const activeEl = document.getElementById(activeId);
+        if (activeEl) activeEl.classList.add('active');
+    }
+
+    renderGrid();
+}
 
 function openSettings() {
     document.getElementById('settingSchoolName').value = currentState.settings.schoolName || '';
