@@ -119,87 +119,87 @@ const deleteStudentBtn = document.getElementById('deleteStudentBtn');
 // === EVENT LISTENERS ===
 
 // Init
+// Init
 window.addEventListener('DOMContentLoaded', () => {
-    // Initialize Data safely from DB_DATA
+    // 1. Initialize Data
     const dataSource = (typeof DB_DATA !== 'undefined') ? DB_DATA : [];
-    if (dataSource.length === 0) {
-        console.warn('DB_DATA is empty or undefined. Check database.js');
-    }
     enhancedData = dataSource.map(item => {
         const tags = estimateTagsFromTitle(item.title);
         return { ...item, ...tags };
     });
 
-    // DEBUG: Remove before shipping
-    if (enhancedData.length === 0) {
-        console.error("Data load failed. DB_DATA type:", typeof DB_DATA);
-        alert(`データ読み込みエラー: データ件数が0件です。\nDB_DATA type: ${typeof DB_DATA}`);
-    } else {
-        // alert(`データ読み込み完了: ${enhancedData.length}件`);
-    }
-
+    // 2. Load State & Reset View for clean start
     loadState();
+    currentState.search = '';
+    currentState.filterLevel = 'all';
+    currentState.filterSubject = 'all';
+    currentState.filterSpecial = 'all';
+    currentState.viewMode = 'search';
+
+    // 3. Render Initial State
+    if (searchInput) searchInput.value = '';
     renderStudentSelect();
     updateCartDisplay();
+    // Render grid immediately
     renderGrid();
 
     // Enable global export buttons initially
     if (exportStudentListBtn) exportStudentListBtn.disabled = false;
     if (exportOrderSheetBtn) exportOrderSheetBtn.disabled = false;
 
-    // Sync input with state (which is reset on load)
-    if (searchInput) searchInput.value = currentState.search;
+    // 4. Attach Listeners (with safety checks)
+    const navSearch = document.getElementById('navSearch');
+    if (navSearch) navSearch.addEventListener('click', () => updateViewMode('search'));
 
-    // Sidebar Navigation
-    document.getElementById('navSearch').addEventListener('click', () => updateViewMode('search'));
-    document.getElementById('navFavorites').addEventListener('click', () => updateViewMode('favorites'));
-    document.getElementById('navHistory').addEventListener('click', () => updateViewMode('history'));
-    document.getElementById('navSettings').addEventListener('click', openSettings);
+    const navFavorites = document.getElementById('navFavorites');
+    if (navFavorites) navFavorites.addEventListener('click', () => updateViewMode('favorites'));
 
-    // Settings Modal Listeners
-    document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
-    document.getElementById('btnDeleteAllStudents').addEventListener('click', confirmDeleteAllStudents);
-    document.getElementById('btnFactoryReset').addEventListener('click', confirmFactoryReset);
+    const navHistory = document.getElementById('navHistory');
+    if (navHistory) navHistory.addEventListener('click', () => updateViewMode('history'));
 
-    // Single Student Delete
+    const navSettings = document.getElementById('navSettings');
+    if (navSettings) navSettings.addEventListener('click', openSettings);
+
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', saveSettings);
+
+    const btnDeleteAllStudents = document.getElementById('btnDeleteAllStudents');
+    if (btnDeleteAllStudents) btnDeleteAllStudents.addEventListener('click', confirmDeleteAllStudents);
+
+    const btnFactoryReset = document.getElementById('btnFactoryReset');
+    if (btnFactoryReset) btnFactoryReset.addEventListener('click', confirmFactoryReset);
+
     if (deleteStudentBtn) {
         deleteStudentBtn.addEventListener('click', confirmDeleteSingleStudent);
     }
 
-    // Custom Confirmation Modal Listeners
     const confirmModal = document.getElementById('confirmModal');
-    document.getElementById('confirmCancelBtn').addEventListener('click', () => confirmModal.classList.remove('active'));
-    confirmModal.addEventListener('click', (e) => {
-        if (e.target === confirmModal) confirmModal.classList.remove('active');
-    });
+    if (confirmModal) {
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+        if (cancelBtn) cancelBtn.addEventListener('click', () => confirmModal.classList.remove('active'));
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) confirmModal.classList.remove('active');
+        });
+    }
 
     const settingsModal = document.getElementById('settingsModal');
-    settingsModal.querySelectorAll('.close-modal, .close-modal-btn').forEach(btn => {
-        btn.addEventListener('click', () => settingsModal.classList.remove('active'));
+    if (settingsModal) {
+        settingsModal.querySelectorAll('.close-modal, .close-modal-btn').forEach(btn => {
+            btn.addEventListener('click', () => settingsModal.classList.remove('active'));
+        });
+    }
+
+    // Force "Active" style on All buttons
+    ['levelFilters', 'subjectFilters', 'specialFilters'].forEach(id => {
+        const container = document.getElementById(id);
+        if (container) {
+            container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            const allBtn = container.querySelector('[data-filter="all"]');
+            if (allBtn) allBtn.classList.add('active');
+        }
     });
 
     updateViewMode('search');
-
-    // Force refresh by simulating click on 'All' level filter
-    // This ensures that the exact code path that works for the user (clicking buttons) is triggered on load.
-    const activeLevelBtn = document.querySelector('#levelFilters .chip[data-filter="all"]');
-    if (activeLevelBtn) {
-        activeLevelBtn.click();
-    } else {
-        renderGrid(); // Fallback
-    }
-
-    // Safety check: if grid is empty despite data depending on filters, reset filters and try again
-    setTimeout(() => {
-        if (enhancedData.length > 0 && grid.children.length === 0) {
-            console.warn('Grid empty on load. Forcing reset.');
-            currentState.search = '';
-            currentState.filterLevel = 'all';
-            currentState.filterSubject = 'all';
-            currentState.filterSpecial = 'all';
-            renderGrid();
-        }
-    }, 500);
 });
 
 // ... updateViewMode ...
