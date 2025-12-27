@@ -116,9 +116,16 @@ const importStudentInput = document.getElementById('importStudentInput');
 const deleteAllStudentsBtn = document.getElementById('deleteAllStudentsBtn');
 const deleteStudentBtn = document.getElementById('deleteStudentBtn');
 
+// Mobile DOM
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const mobileCartBtn = document.getElementById('mobileCartBtn');
+const mobileCartBadge = document.getElementById('mobileCartBadge');
+const drawerOverlay = document.getElementById('drawerOverlay');
+const sidebar = document.querySelector('.sidebar');
+const cartPanel = document.querySelector('.cart-panel');
+
 // === EVENT LISTENERS ===
 
-// Init
 // Init
 window.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize Data
@@ -146,6 +153,33 @@ window.addEventListener('DOMContentLoaded', () => {
     // Enable global export buttons initially
     if (exportStudentListBtn) exportStudentListBtn.disabled = false;
     if (exportOrderSheetBtn) exportOrderSheetBtn.disabled = false;
+
+    // Mobile Event Listeners
+    if (mobileMenuBtn && sidebar && drawerOverlay) {
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            drawerOverlay.classList.toggle('active');
+            // Close cart if open
+            if (cartPanel) cartPanel.classList.remove('active');
+        });
+    }
+
+    if (mobileCartBtn && cartPanel && drawerOverlay) {
+        mobileCartBtn.addEventListener('click', () => {
+            cartPanel.classList.toggle('active');
+            drawerOverlay.classList.toggle('active');
+            // Close sidebar if open
+            if (sidebar) sidebar.classList.remove('active');
+        });
+    }
+
+    if (drawerOverlay) {
+        drawerOverlay.addEventListener('click', () => {
+            if (sidebar) sidebar.classList.remove('active');
+            if (cartPanel) cartPanel.classList.remove('active');
+            drawerOverlay.classList.remove('active');
+        });
+    }
 
     // 4. Attach Listeners (with safety checks)
     const navSearch = document.getElementById('navSearch');
@@ -566,11 +600,18 @@ function removeFromCart(itemId) {
 function updateCartDisplay() {
     cartItemsList.innerHTML = '';
 
+    // Mobile Badge Update (Empty)
+    if (mobileCartBadge) {
+        mobileCartBadge.style.display = 'none';
+        mobileCartBadge.innerText = '0';
+    }
+
     // Check selection
     if (!currentState.currentStudentId) {
         cartEmptyState.style.display = 'flex';
+        // ... omitted
         cartEmptyState.querySelector('p').innerHTML = '生徒を選択して<br>教材を追加してください';
-        exportCartBtn.disabled = true;
+        // ... (keep existing disabled logic)
         createQuoteBtn.disabled = true;
         updateTotals(0, 0);
         return;
@@ -580,12 +621,15 @@ function updateCartDisplay() {
     if (!student || student.cart.length === 0) {
         cartEmptyState.style.display = 'flex';
         cartEmptyState.querySelector('p').innerHTML = 'カートは空です';
-        // Global export buttons should remain active
-        // if (exportStudentListBtn) exportStudentListBtn.disabled = true;
-        // if (exportOrderSheetBtn) exportOrderSheetBtn.disabled = true;
         createQuoteBtn.disabled = true;
         updateTotals(0, 0);
         return;
+    }
+
+    // Mobile Badge Update (Active)
+    if (mobileCartBadge) {
+        mobileCartBadge.style.display = 'flex';
+        mobileCartBadge.innerText = student.cart.length;
     }
 
     // Has items
