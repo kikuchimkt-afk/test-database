@@ -12,6 +12,14 @@
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        (function () {
+            var ua = navigator.userAgent.toLowerCase();
+            if (/iphone|android|ipod/.test(ua) && !window.location.search.includes('mode=desktop')) {
+                window.location.href = 'mobile.html';
+            }
+        })();
+    </script>
 </head>
 
 <body>
