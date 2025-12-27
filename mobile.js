@@ -92,6 +92,9 @@ function renderContent() {
     const container = document.getElementById('itemList');
     container.innerHTML = '';
 
+    // Always clear cart footer first
+    removeCartFooter();
+
     // Determine what to show based on Tab
     if (currentState.tab === 'home') {
         renderHomeItems(container);
